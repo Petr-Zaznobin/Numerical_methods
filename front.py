@@ -8,6 +8,9 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QGridLayout, QWidget, QTa
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -44,7 +47,7 @@ class Ui_MainWindow(object):
         self.table_0 = QtWidgets.QTableWidget(self.tab_0)
         self.table_0.setGeometry(QtCore.QRect(10, 240, 611, 192))
         self.table_0.setObjectName("table_0")
-        self.table_0.setColumnCount(10)
+        self.table_0.setColumnCount(11)
         self.table_0.setRowCount(0)
         item = QtWidgets.QTableWidgetItem()
         self.table_0.setHorizontalHeaderItem(0, item)
@@ -66,7 +69,9 @@ class Ui_MainWindow(object):
         self.table_0.setHorizontalHeaderItem(8, item)
         item = QtWidgets.QTableWidgetItem()
         self.table_0.setHorizontalHeaderItem(9, item)
-        self.table_0.horizontalHeader().setDefaultSectionSize(60)
+        item = QtWidgets.QTableWidgetItem()
+        self.table_0.setHorizontalHeaderItem(10, item)
+        self.table_0.horizontalHeader().setDefaultSectionSize(55)
         self.count_0 = QtWidgets.QGroupBox(self.tab_0)
         self.count_0.setGeometry(QtCore.QRect(20, 100, 431, 81))
         self.count_0.setObjectName("count_0")
@@ -372,7 +377,7 @@ class Ui_MainWindow(object):
         item = self.table_0.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "v2ᵢ"))
         item = self.table_0.horizontalHeaderItem(4)
-        item.setText(_translate("MainWindow", "vᵢ-v2ᵢ"))
+        item.setText(_translate("MainWindow", "|vᵢ-v2ᵢ|"))
         item = self.table_0.horizontalHeaderItem(5)
         item.setText(_translate("MainWindow", "ОЛП"))
         item = self.table_0.horizontalHeaderItem(6)
@@ -382,6 +387,8 @@ class Ui_MainWindow(object):
         item = self.table_0.horizontalHeaderItem(8)
         item.setText(_translate("MainWindow", "C2"))
         item = self.table_0.horizontalHeaderItem(9)
+        item.setText(_translate("MainWindow", "uᵢ"))
+        item = self.table_0.horizontalHeaderItem(10)
         item.setText(_translate("MainWindow", "|uᵢ-vᵢ|"))
         self.count_0.setTitle(_translate("MainWindow", "Счёт"))
         self.ntxt_0.setText(_translate("MainWindow", "N max="))
@@ -417,7 +424,7 @@ class Ui_MainWindow(object):
         item = self.table_1.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "v2ᵢ"))
         item = self.table_1.horizontalHeaderItem(4)
-        item.setText(_translate("MainWindow", "vᵢ-v2ᵢ"))
+        item.setText(_translate("MainWindow", "|vᵢ-v2ᵢ|"))
         item = self.table_1.horizontalHeaderItem(5)
         item.setText(_translate("MainWindow", "ОЛП"))
         item = self.table_1.horizontalHeaderItem(6)
@@ -448,7 +455,7 @@ class Ui_MainWindow(object):
         item = self.table_2.horizontalHeaderItem(3)
         item.setText(_translate("MainWindow", "v2ᵢ"))
         item = self.table_2.horizontalHeaderItem(4)
-        item.setText(_translate("MainWindow", "vᵢ-v2ᵢ"))
+        item.setText(_translate("MainWindow", "|vᵢ-v2ᵢ|"))
         item = self.table_2.horizontalHeaderItem(5)
         item.setText(_translate("MainWindow", "ОЛП"))
         item = self.table_2.horizontalHeaderItem(6)
@@ -518,10 +525,13 @@ class Ui_MainWindow(object):
             data["a"] = float(self.a_2.text())
         return task, data
 
-    def fill_table(self, task, tabledata):
+    def fill_table(self, task, lpcontrol, tabledata):
         if task == 0: table = self.table_0
         elif task == 1: table = self.table_1
         elif task == 2: table = self.table_2
+
+        for i in range(len(tabledata[0])):
+            table.showColumn(i)
 
         table.setRowCount(len(tabledata))
         for i in range(len(tabledata)):
@@ -529,6 +539,22 @@ class Ui_MainWindow(object):
                 table.setItem(i, j, QTableWidgetItem(str(tabledata[i][j])))
         table.resizeColumnsToContents()
         table.verticalHeader().setVisible(0)
+        if task == 1:
+            if not lpcontrol:
+                table.hideColumn(3)
+                table.hideColumn(4)
+                table.hideColumn(5)
+                table.hideColumn(7)
+                table.hideColumn(8)
+        elif task == 2:
+            table.setHorizontalHeaderItem(4, QTableWidgetItem("|vᵢ-v2ᵢ|"))
+            if not lpcontrol:
+                #table.hideColumn(4)
+                table.hideColumn(6)
+                table.hideColumn(5)
+                table.hideColumn(7)
+                table.hideColumn(8)
+                table.setHorizontalHeaderItem(4, QTableWidgetItem("h"))
 
     def work(self, task):
         parameters = self.getparameters(task)
@@ -548,7 +574,7 @@ class Ui_MainWindow(object):
             ns.PlotPhasePortait()
             print(data['control'])
         print(ns.return_table())
-        self.fill_table(task, ns.return_table())
+        self.fill_table(task, data["control"], ns.return_table())
 
 
 if __name__ == "__main__":
@@ -561,5 +587,4 @@ if __name__ == "__main__":
     MainWindow.show()
 
     sys.exit(app.exec_())
-
 
