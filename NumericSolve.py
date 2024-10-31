@@ -6,6 +6,14 @@ P = 4  # порядок метода
 EPS = 0.01  # епсилон граничное
 
 
+import numpy as np
+import matplotlib.pyplot as plt
+
+STEP = 0.01  # Константа шага
+P = 4  # порядок метода
+EPS = 0.01  # епсилон граничное
+
+
 class one_d_diffur:
     def __init__(self, category: int, variant_num: int, u0: float, x0: float, n_max: int, eps: float, b: float,
                  h: float, with_lp: bool):
@@ -215,15 +223,17 @@ class one_d_diffur:
         - При category == 1: только приближенное решение.
         """
         np.set_printoptions(threshold=np.inf)
-        x_values = self.data[:, 1]  # Значения x
-        approx_values = self.data[:, 3]  # Приближенные значения v2
         plt.figure(figsize=(10, 6))
         if self.category == 0 and self.with_lp == True:
+            approx_values = self.data[:, 3]  # Приближенные значения v2
+            x_values = self.data[:, 1]
             true_values = self.data[:, 9]  # Истинные значения ui
             plt.plot(x_values, true_values, label='Истинное решение', color='blue', linestyle='--', linewidth=1)
             plt.plot(x_values, approx_values, label='Приближенное решение', color='red', linestyle='--', linewidth=1)
             plt.title('Сравнение приближенного и истинного решения')
         elif self.category == 1 and self.with_lp == True:
+            approx_values = self.data[:, 3]  # Приближенные значения v2
+            x_values = self.data[:, 1]
             plt.plot(x_values, approx_values, label='Приближенное решение', color='green')
             plt.title('Приближенное решение')
         elif self.category == 0 and self.with_lp == False:
@@ -499,15 +509,23 @@ class two_d_diffur:
             plt.legend()
             plt.show()
 
-# Примеры использования:
 
-# # Создаем объект класса one_d_diffur, например:
-# solver = one_d_diffur(category=1, variant_num=1, u0=1, x0=1, n_max=500, eps=1e-6, b=10)
-# solver.solve(with_lp=True)
-# solver.plot_solution()
+if __name__ == "__main__":
+    '''
+    solver = one_d_diffur(category=0, variant_num=1, u0=1, x0=1, n_max=500, eps=1e-6, b=10, h=0.1, with_lp=True)
+    solver.solve(with_lp=True)
+    table = solver.return_table().tolist()
+    solver.print_table()
+    '''
 
-# Решение диффура второго порядка
-# solver = two_d_diffur(1, 1, 0.1, 2, 10000, 1e-5, 20)
-# solver.solve(with_lp=False)
-# solver.plot_solution()
-# solver.PlotPhasePortait()
+    solver = one_d_diffur(category=1, variant_num=1, u0=1, x0=1, n_max=500, eps=1e-6, b=10, h=0.1, with_lp=False)
+    solver.solve(with_lp=False)
+    table = solver.return_table()
+    solver.print_table()
+
+    """
+    solver = two_d_diffur(1, 1, 0.1, 2, 10000, 1e-5, 20, 0.1, 0)
+    solver.solve(with_lp=True)
+    table = solver.return_table()
+    solver.print_table()
+    """
