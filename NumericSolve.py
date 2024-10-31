@@ -33,9 +33,9 @@ class one_d_diffur:
             self.data = np.empty((0, 11))
             # [index, xi, vi, v2i, vi-v2i, ОЛП, hi, C1, C2, ui, |ui-vi|]
         else:
-            self.data = np.empty((0, 8))
-            # [index, xi, vi, vi-v2i, ОЛП, hi, C1, C2]
-        self.data_no_lp = np.empty((0,5))
+            self.data = np.empty((0, 9))
+            # [index, xi, v2i, vi, vi-v2i, ОЛП, hi, C1, C2]
+        self.data_no_lp = np.empty((0, 5))
         # [index, xi, vi, hi, u_true]
         self.c1 = 0
         self.c2 = 0
@@ -43,10 +43,7 @@ class one_d_diffur:
 
     # функция вывода таблицы
     def print_table(self):
-        if self.with_lp == 1:
-            print(self.data)
-        else:
-            print(self.data_no_lp)
+        print(self.return_table())
 
     def return_table(self):
         if self.with_lp == 1:
@@ -108,8 +105,8 @@ class one_d_diffur:
         if self.category == 0 and self.with_lp == True:
             self.data = np.vstack([self.data, [0, self.x, self.u, self.u, 0, 0, self.h, self.c1, self.c2, 0, 0]])
         elif self.category == 1 and self.with_lp == True:
-            self.data = np.vstack([self.data, [0, self.x, self.u, 0, 0, self.h, self.c1, self.c2]])
-            # [index, xi, vi, vi-v2i, ОЛП, hi, C1, C2]
+            self.data = np.vstack([self.data, [0, self.x, self.u, 0, 0, 0, self.h, self.c1, self.c2]])
+            # [index, xi, vi, v2i, vi-v2i, ОЛП, hi, C1, C2]
         elif self.with_lp == False:
             self.data_no_lp = np.vstack([self.data_no_lp, [0, self.x, self.u, self.h, 0]])
         # Работа с погрешностью
@@ -130,7 +127,7 @@ class one_d_diffur:
                         # [index, xi, vi, v2i, vi-v2i, ОЛП, hi, C1, C2, ui, |ui-vi|]
                     else:
                         self.data = np.vstack([self.data,
-                                               [iteration, x2, v2, v2 - v1, s, self.h, self.c1, self.c2]])
+                                               [iteration, x2, v2, v1, v2 - v1, s, self.h, self.c1, self.c2]])
                         # [index, xi, vi, vi-v2i, ОЛП, hi, C1, C2]
                     # Заканчиваем вычисления в случае, если находимся в эпсилон окрестности b
                     if abs(x2 - self.b) < EPS:
@@ -151,7 +148,7 @@ class one_d_diffur:
                                                 abs(ui - v1)]])
                     else:
                         self.data = np.vstack([self.data,
-                                               [iteration, x2, v2, v2 - v1, s, self.h, self.c1, self.c2]])
+                                               [iteration, x2, v2, v1, v2 - v1, s, self.h, self.c1, self.c2]])
                     self.h = 2 * self.h
                     if abs(x2 - self.b) < EPS:
                         print(f"Вычисление остановилось на вычислении {iteration}")
