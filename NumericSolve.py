@@ -7,7 +7,8 @@ EPS = 0.01  # епсилон граничное
 
 
 class one_d_diffur:
-    def __init__(self, category: int, variant_num: int, u0: float, x0: float, n_max: int, eps: float, b: float, h: float, with_lp: bool):
+    def __init__(self, category: int, variant_num: int, u0: float, x0: float, n_max: int, eps: float, b: float,
+                 h: float, with_lp: bool):
         """
         int category   : тип ДУ задания (0-тестовое, 1-первое)
         int variant_num: номер варианта,
@@ -29,28 +30,35 @@ class one_d_diffur:
         self.h = h
         self.category = category
         self.b = b
-        if self.category == 0:
+        self.with_lp = with_lp
+        if self.category == 0 and self.with_lp:
             self.data = np.empty((0, 11))
             # [index, xi, vi, v2i, vi-v2i, ОЛП, hi, C1, C2, ui, |ui-vi|]
-        else:
+        elif self.category == 1 and self.with_lp:
             self.data = np.empty((0, 9))
-            # [index, xi, v2i, vi, vi-v2i, ОЛП, hi, C1, C2]
-        self.data_no_lp = np.empty((0, 5))
-        # [index, xi, vi, hi, u_true]
+            # [index, xi, vi, v2i, vi-v2i, ОЛП, hi, C1, C2]
+        elif self.category == 0 and not self.with_lp:
+            self.data_no_lp = np.empty((0, 5))
+            # [index, xi, vi, hi, u_true]
+        elif self.category == 1 and not self.with_lp:
+            self.data_no_lp = np.empty((0, 4))
+            # [index, xi, vi, hi]
         self.c1 = 0
         self.c2 = 0
-        self.with_lp = with_lp
 
     # функция вывода таблицы
     def print_table(self):
         print(self.return_table())
 
     def return_table(self):
-        if self.with_lp == 1:
+        if self.with_lp == 1 and self.category==0:
             return self.data
-        else:
+        elif self.with_lp == 1 and self.category==1:
+            return self.data
+        elif self.with_lp == 0 and self.category== 0:
             return self.data_no_lp
-
+        elif self.with_lp == 0 and self.category== 1:
+            return self.data_no_lp
     # Функции (тестовая, основная задача)
     def __f(self, x, u):
         category = self.category
@@ -107,8 +115,12 @@ class one_d_diffur:
         elif self.category == 1 and self.with_lp == True:
             self.data = np.vstack([self.data, [0, self.x, self.u, 0, 0, 0, self.h, self.c1, self.c2]])
             # [index, xi, vi, v2i, vi-v2i, ОЛП, hi, C1, C2]
-        elif self.with_lp == False:
+        elif self.category == 0 and self.with_lp == False:
             self.data_no_lp = np.vstack([self.data_no_lp, [0, self.x, self.u, self.h, 0]])
+        elif self.category == 1 and self.with_lp == False:
+            self.data_no_lp = np.vstack([self.data_no_lp, [0, self.x, self.u, self.h]])
+            # [index, xi, vi, hi]
+
         # Работа с погрешностью
         prev_v = self.u
         if with_lp:
@@ -120,7 +132,7 @@ class one_d_diffur:
                 if self.eps >= s >= self.eps / (2 ** (P + 1)):
                     if self.category == 0:
                         ui = self.true_solve_test(x1)
-                        mod = abs(ui-v1)
+                        mod = abs(ui - v1)
                         self.data = np.vstack([self.data,
                                                [iteration, x2, v2, v1, v2 - v1, s, self.h, self.c1, self.c2, ui,
                                                 abs(ui - v1)]])
@@ -135,8 +147,8 @@ class one_d_diffur:
                         break
 
                     # Прогнозируем последний шаг
-                    if x2+self.h > self.b + EPS:
-                        self.h = self.b+EPS-x2
+                    if x2 + self.h > self.b + EPS:
+                        self.h = self.b + EPS - x2
 
                     self.u = v2
                     self.x = x2
@@ -185,7 +197,10 @@ class one_d_diffur:
                 self.u = v
                 self.x = x
                 prev_v = v
-                self.data_no_lp = np.vstack([self.data_no_lp, [iteration, self.x, self.u, self.h, x_true]])
+                if self.category == 0:
+                    self.data_no_lp = np.vstack([self.data_no_lp, [iteration, self.x, self.u, self.h, x_true]])
+                else:
+                    self.data_no_lp = np.vstack([self.data_no_lp, [iteration, self.x, self.u, self.h]])
 
             return [self.u, self.x]
 
@@ -203,15 +218,15 @@ class one_d_diffur:
         x_values = self.data[:, 1]  # Значения x
         approx_values = self.data[:, 3]  # Приближенные значения v2
         plt.figure(figsize=(10, 6))
-        if self.category == 0 and self.with_lp==True:
+        if self.category == 0 and self.with_lp == True:
             true_values = self.data[:, 9]  # Истинные значения ui
             plt.plot(x_values, true_values, label='Истинное решение', color='blue', linestyle='--', linewidth=1)
             plt.plot(x_values, approx_values, label='Приближенное решение', color='red', linestyle='--', linewidth=1)
             plt.title('Сравнение приближенного и истинного решения')
-        elif self.category == 1 and self.with_lp==True:
+        elif self.category == 1 and self.with_lp == True:
             plt.plot(x_values, approx_values, label='Приближенное решение', color='green')
             plt.title('Приближенное решение')
-        elif self.category == 0 and self.with_lp==False:
+        elif self.category == 0 and self.with_lp == False:
             # [index, xi, vi, hi]
             x_values = self.data_no_lp[:, 1]
             approx_values = self.data_no_lp[:, 2]
@@ -231,9 +246,11 @@ class one_d_diffur:
         plt.grid(True)
         plt.show()
 
+
 # Работа со второй задачей (ДУ второго порядка)
 class two_d_diffur:
-    def __init__(self, u0: float, z0: float, x0: float, a: float, n_max: int, eps: float, b: float, h: float, with_lp: bool):
+    def __init__(self, u0: float, z0: float, x0: float, a: float, n_max: int, eps: float, b: float, h: float,
+                 with_lp: bool):
         # self.u0 = u0
         # self.x0 = x0
         # self.z0 = z0
@@ -254,16 +271,38 @@ class two_d_diffur:
         self.with_lp = with_lp
 
     def print_table(self):
-        if self.with_lp == 1:
-            print(self.data)
-        else:
-            print(self.data_no_lp)
+        print(self.return_table())
 
     def return_table(self):
         if self.with_lp == 1:
-            return self.data
+            new_data = [
+                [row[0],  # index
+                 row[1],  # xi
+                 [row[2], row[3]],  # [vi[0], vi[1]]
+                 [row[4], row[5]],  # [v2i[0], v2i[1]]
+                 [row[6], row[7]],  # [vi[0] - v2i[0], vi[1] - v2i[1]]
+                 [row[8], row[9]],  # [ОЛП[0], ОЛП[1]]
+                 row[10],  # hi
+                 row[11],  # C1
+                 row[12]  # C2
+                 ]
+                for row in self.data
+            ]
+            return new_data
         else:
+            new_data_no_lp = [
+                [row[0],  # index
+                 row[1],  # x
+                 row[2],  # ui
+                 row[3],  # zi
+                 '-', '-', '-', '-', '-', '-',  # пять прочерков
+                 row[4],  # hi
+                 '-', '-'  # два прочерка
+                 ]
+                for row in self.data_no_lp
+            ]
             return self.data_no_lp
+
     def __f1(self, x, u, z):
         return z
 
@@ -325,8 +364,8 @@ class two_d_diffur:
                 x2, v2 = self.__solve_without_lp()
                 s = [(v1[0] - v2[0]) / (2 ** P - 1),
                      (v1[1] - v2[1]) / (2 ** P - 1)]
-                #s_norma = s[0] + s[1]  # ||s||1
-                s_norma = max(s[0], s[1])  #||s||inf
+                # s_norma = s[0] + s[1]  # ||s||1
+                s_norma = max(s[0], s[1])  # ||s||inf
 
                 if self.eps >= s_norma >= self.eps / (2 ** (P + 1)):
                     self.data = np.vstack([self.data,
@@ -377,8 +416,7 @@ class two_d_diffur:
                 self.x = x
                 prev_v = v
                 self.data_no_lp = np.vstack([self.data_no_lp,
-                                       [iteration, self.x, self.u, self.z, self.h]])
-
+                                             [iteration, self.x, self.u, self.z, self.h]])
 
     def plot_solution(self):
         """
