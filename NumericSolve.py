@@ -509,7 +509,6 @@ class two_d_diffur:
             plt.legend()
             plt.show()
 
-
 if __name__ == "__main__":
     '''
     solver = one_d_diffur(category=0, variant_num=1, u0=1, x0=1, n_max=500, eps=1e-6, b=10, h=0.1, with_lp=True)
