@@ -46,8 +46,8 @@ class one_d_diffur:
             self.data = np.empty((0, 9))
             # [index, xi, vi, v2i, vi-v2i, ОЛП, hi, C1, C2]
         elif self.category == 0 and not self.with_lp:
-            self.data_no_lp = np.empty((0, 5))
-            # [index, xi, vi, hi, u_true]
+            self.data_no_lp = np.empty((0, 6))
+            # [index, xi, vi, hi, u_true, |ui-vi|]
         elif self.category == 1 and not self.with_lp:
             self.data_no_lp = np.empty((0, 4))
             # [index, xi, vi, hi]
@@ -60,13 +60,77 @@ class one_d_diffur:
 
     def return_table(self):
         if self.with_lp == 1 and self.category==0:
-            return self.data
+            # [index, xi, vi, v2i, vi-v2i, ОЛП, hi, C1, C2, ui, |ui-vi|]
+            new_data = [
+                [row[0],  # index
+                 row[1],  # xi
+                 row[2],  # vi
+                 row[3],  # v2i
+                 row[4],  # vi - v2i
+                 row[5],  # ОЛП
+                 row[10],  # hi
+                 row[11],  # C1
+                 row[12],  # C2
+                 row[13], # ui
+                 row[14]  #| ui-vi|
+                 ]
+                for row in self.data
+            ]
+            return new_data
         elif self.with_lp == 1 and self.category==1:
-            return self.data
+            # [index, xi, vi, v2i, vi-v2i, ОЛП, hi, C1, C2]
+            new_data = [
+                [row[0],  # index
+                 row[1],  # xi
+                 row[2],  # vi
+                 row[3],  # v2i
+                 row[4],  # vi - v2i
+                 row[5],  # ОЛП
+                 row[10],  # hi
+                 row[11],  # C1
+                 row[12],  # C2
+                 '-',
+                 '-'
+                 ]
+                for row in self.data
+            ]
+            return new_data
         elif self.with_lp == 0 and self.category== 0:
-            return self.data_no_lp
+            # [index, xi, vi, hi, u_true, |ui-vi|]
+            new_data = [
+                [row[0],  # index
+                 row[1],  # xi
+                 row[2],  # vi
+                 '-',  # v2i
+                 '-',  # vi - v2i
+                 '-',  # ОЛП
+                 row[3],  # hi
+                 '-',  # C1
+                 '-',  # C2
+                 row[4],  # ui
+                 row[5]   # |ui-vi|
+                 ]
+                for row in self.data_no_lp
+            ]
+            return new_data
         elif self.with_lp == 0 and self.category== 1:
-            return self.data_no_lp
+            # [index, xi, vi, hi]
+            new_data = [
+                [row[0],  # index
+                 row[1],  # xi
+                 row[2],  # vi
+                 '-',  # v2i
+                 '-',  # vi - v2i
+                 '-',  # ОЛП
+                 row[3],  # hi
+                 '-',  # C1
+                 '-',  # C2
+                 '-',  # ui
+                 '-'  # |ui-vi|
+                 ]
+                for row in self.data_no_lp
+            ]
+            return new_data
     # Функции (тестовая, основная задача)
     def __f(self, x, u):
         category = self.category
@@ -124,7 +188,7 @@ class one_d_diffur:
             self.data = np.vstack([self.data, [0, self.x, self.u, 0, 0, 0, self.h, self.c1, self.c2]])
             # [index, xi, vi, v2i, vi-v2i, ОЛП, hi, C1, C2]
         elif self.category == 0 and self.with_lp == False:
-            self.data_no_lp = np.vstack([self.data_no_lp, [0, self.x, self.u, self.h, 0]])
+            self.data_no_lp = np.vstack([self.data_no_lp, [0, self.x, self.u, self.h, 0, 0]])
         elif self.category == 1 and self.with_lp == False:
             self.data_no_lp = np.vstack([self.data_no_lp, [0, self.x, self.u, self.h]])
             # [index, xi, vi, hi]
@@ -194,7 +258,7 @@ class one_d_diffur:
         else:
             for iteration in range(1, self.n_max):
                 x, v = self.__solve_with_lp()
-                x_true = self.true_solve_test(self.x)
+                u_true = self.true_solve_test(self.x)
                 if abs(x - self.b) < EPS:
                     print(f"Вычисление остановилось на вычислении {iteration}")
                     break
@@ -206,7 +270,7 @@ class one_d_diffur:
                 self.x = x
                 prev_v = v
                 if self.category == 0:
-                    self.data_no_lp = np.vstack([self.data_no_lp, [iteration, self.x, self.u, self.h, x_true]])
+                    self.data_no_lp = np.vstack([self.data_no_lp, [iteration, self.x, self.u, self.h, u_true, abs(u_true - v)]])
                 else:
                     self.data_no_lp = np.vstack([self.data_no_lp, [iteration, self.x, self.u, self.h]])
 
@@ -294,7 +358,9 @@ class two_d_diffur:
                  [row[8], row[9]],  # [ОЛП[0], ОЛП[1]]
                  row[10],  # hi
                  row[11],  # C1
-                 row[12]  # C2
+                 row[12],  # C2
+                 '-',       #ui
+                 '-'        #|ui-vi|
                  ]
                 for row in self.data
             ]
@@ -305,13 +371,13 @@ class two_d_diffur:
                  row[1],  # x
                  row[2],  # ui
                  row[3],  # zi
-                 '-', '-', '-', '-', '-', '-',  # пять прочерков
+                 '-',
                  row[4],  # hi
-                 '-', '-'  # два прочерка
+                 '-', '-', '-', '-', '-'  # четыре прочерков
                  ]
                 for row in self.data_no_lp
             ]
-            return self.data_no_lp
+            return new_data_no_lp
 
     def __f1(self, x, u, z):
         return z
