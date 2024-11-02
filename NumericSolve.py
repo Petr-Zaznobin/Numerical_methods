@@ -1,15 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-STEP = 0.01  # Константа шага
-P = 4  # порядок метода
-EPS = 0.01  # епсилон граничное
-
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-STEP = 0.01  # Константа шага
 P = 4  # порядок метода
 EPS = 0.01  # епсилон граничное
 
@@ -68,11 +59,11 @@ class one_d_diffur:
                  row[3],  # v2i
                  row[4],  # vi - v2i
                  row[5],  # ОЛП
-                 row[10],  # hi
-                 row[11],  # C1
-                 row[12],  # C2
-                 row[13], # ui
-                 row[14]  #| ui-vi|
+                 row[6],  # hi
+                 row[7],  # C1
+                 row[8],  # C2
+                 row[9], # ui
+                 row[10]  #| ui-vi|
                  ]
                 for row in self.data
             ]
@@ -86,9 +77,9 @@ class one_d_diffur:
                  row[3],  # v2i
                  row[4],  # vi - v2i
                  row[5],  # ОЛП
-                 row[10],  # hi
-                 row[11],  # C1
-                 row[12],  # C2
+                 row[6],  # hi
+                 row[7],  # C1
+                 row[8],  # C2
                  '-',
                  '-'
                  ]
