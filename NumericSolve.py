@@ -62,7 +62,7 @@ class one_d_diffur:
                  row[6],  # hi
                  row[7],  # C1
                  row[8],  # C2
-                 row[9], # ui
+                 row[9],  # ui
                  row[10]  #| ui-vi|
                  ]
                 for row in self.data
@@ -190,7 +190,7 @@ class one_d_diffur:
             for iteration in range(1, self.n_max):
                 x1, v1 = self.__solve_with_lp()
                 x2, v2 = self.__solve_without_lp()
-                s = (v1 - v2) / (2 ** P - 1)
+                s = (v1 - v2) / (2 ** (P - 1))
                 s = abs(s)
                 if self.eps >= s >= self.eps / (2 ** (P + 1)):
                     if self.category == 0:
@@ -236,9 +236,11 @@ class one_d_diffur:
                     self.u = v2
                     self.x = x2
                 elif s > self.eps:
+                    self.data = np.vstack([self.data,
+                                           [iteration, x2, v2, v1, v2 - v1, s, self.h, self.c1, self.c2]])
                     self.h = self.h / 2
                     self.c2 += 1
-                    iteration -= 2  # точно уменьшается на 1? Надо проверить
+                    #iteration -= 2  # точно уменьшается на 1? Надо проверить
 
                 # if abs(v1 - prev_v) < self.eps:
                 #     print(f"Решение стабилизировалось на шаге {iteration}")
@@ -249,7 +251,7 @@ class one_d_diffur:
         else:
             for iteration in range(1, self.n_max):
                 x, v = self.__solve_with_lp()
-                u_true = self.true_solve_test(self.x)
+                u_true = self.true_solve_test(x) #БЫЛО SELF.X________________
                 if abs(x - self.b) < EPS:
                     print(f"Вычисление остановилось на вычислении {iteration}")
                     break
@@ -340,6 +342,7 @@ class two_d_diffur:
 
     def return_table(self):
         if self.with_lp == 1:
+            print(f"indexes: {self.data[0][0]}")
             new_data = [
                 [row[0],  # index
                  row[1],  # xi
@@ -429,11 +432,10 @@ class two_d_diffur:
             for iteration in range(0, self.n_max):
                 x1, v1 = self.__solve_with_lp()
                 x2, v2 = self.__solve_without_lp()
-                s = [(v1[0] - v2[0]) / (2 ** P - 1),
-                     (v1[1] - v2[1]) / (2 ** P - 1)]
-                # s_norma = s[0] + s[1]  # ||s||1
-                s_norma = max(s[0], s[1])  # ||s||inf
-
+                s = [(v1[0] - v2[0]) / (2 ** (P - 1)),
+                     (v1[1] - v2[1]) / (2 ** (P - 1))]
+                s_norma = abs(s[0]) + abs(s[1])  # ||s||1
+                #s_norma = max(s[0], s[1])  # ||s||inf
                 if self.eps >= s_norma >= self.eps / (2 ** (P + 1)):
                     self.data = np.vstack([self.data,
                                            [iteration, x2, v2[0], v2[1], v1[0], v1[1],
@@ -464,9 +466,12 @@ class two_d_diffur:
                     self.z = v2[1]
                     self.x = x2
                 elif s_norma > self.eps:
+                    self.data = np.vstack([self.data,
+                                           [iteration, x2, v2[0], v2[1], v1[0], v1[1],
+                                            v2[0] - v1[0], v2[1] - v1[1], s[0], s[1], self.h, self.c1, self.c2]])
                     self.h = self.h / 2
                     self.c2 += 1
-                    iteration -= 1  # точно уменьшается на 1? Надо проверить
+                    #iteration -= 1  # точно уменьшается на 1? Надо проверить
                 prev_v = v1
         else:
             for iteration in range(0, self.n_max):
